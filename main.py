@@ -44,6 +44,8 @@ class App(Frame):
     def init_console_frame(self, parent):
         self.console_frame = Frame(parent)
         self.console_text = Text(self.console_frame)
+        #禁止输入
+        self.console_text.bind("<KeyPress>", lambda e: "break")
         self.console_text.pack()
         self.console_frame.pack(side=RIGHT, expand=YES, fill=BOTH)
 
