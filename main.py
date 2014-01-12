@@ -67,6 +67,21 @@ class HeaderTable(tk.LabelFrame):
         self.rows += 1
         self.columns += 1
 
+    def remove_selected_rows(self):
+        mark = False
+        while not mark:
+            for row in reversed(range(self.rows)):
+                if self._checkbox_value[row].get() == 1:
+                    #self.grid_columnconfigure(column, weight=1)
+                    for obj in self._widgets[row]:
+                        obj.destroy()
+                    del self._widgets[row]
+                    del self._checkbox_value[row]
+                    self.rows -= 1
+                    break
+                if row == 0:
+                    mark = True
+
     def update_row_widget_state(self, row):
         widget1 = self._widgets[row][1]
         widget2 = self._widgets[row][2]
@@ -153,7 +168,7 @@ class App(tk.Frame):
         if is_add:
             self.header_table.add_row()
         else:
-            pass
+            self.header_table.remove_selected_rows()
 
     def send_btn_click(self):
         url = self.url_entry.get()
