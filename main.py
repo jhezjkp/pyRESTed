@@ -15,36 +15,22 @@ class HeaderTable(tk.LabelFrame):
 
     def __init__(self, parent, rows=2, columns=3):
         tk.LabelFrame.__init__(self, parent, bg="gray")
-        self.rows = rows
+        self.rows = 0
         self.columns = columns
         self._widgets = []
         self._checkbox_value = []
-        for row in range(rows):
-            current_row = []
-            for column in range(columns):
-                if row == 0:
-                    self._checkbox_value.append(tk.IntVar())  # 占坑，无用
-                    lable = tk.Label(self, text="" if column ==0 else "Header Field" if column == 1 else "Header Value")
-                    lable.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
-                    current_row.append(lable)
-                else:
-                    if column == 0:
-                        self._checkbox_value.append(tk.IntVar())
-                        checkbox = tk.Checkbutton(self, onvalue=1, offvalue=0,
-                            variable=self._checkbox_value[row], command=lambda row=row: self.update_row_widget_state(row))
-                        checkbox.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
-                        current_row.append(checkbox)
-                    elif column == 1:
-                        combobox = ttk.Combobox(self, text="", values=header_field_map.keys(), width=8)
-                        combobox.bind("<<ComboboxSelected>>", lambda event, row=row: self.head_field_selected(event, row))
-                        combobox.grid(row=row, column=column, sticky="nsew", padx=1, pady=0)
-                        current_row.append(combobox)
-                    else:
-                        combobox = ttk.Combobox(self, text="", values=[], width=8)
-                        combobox.grid(row=row, column=column, sticky="nsew", padx=1, pady=0)
-                        current_row.append(combobox)
-            self._widgets.append(current_row)
-
+        #表头
+        current_row = []
+        for column in range(columns):
+            self._checkbox_value.append(tk.IntVar())  # 占坑，无用
+            lable = tk.Label(self, text="" if column ==0 else "Header Field" if column == 1 else "Header Value")
+            lable.grid(row=0, column=column, sticky="nsew", padx=1, pady=1)
+            current_row.append(lable)
+        self._widgets.append(current_row)
+        self.rows += 1  # 表格头算一行
+        for row in range(1, rows):
+            self.add_row()
+        #设置各列的列宽
         for column in range(columns):
             if column == 0:
                 self.grid_columnconfigure(column, weight=1)
@@ -52,33 +38,38 @@ class HeaderTable(tk.LabelFrame):
                 self.grid_columnconfigure(column, weight=10)
         #预先选定一个header头
         self._widgets[1][1].current(1)
-        self.head_field_selected(None, 1)
+        self.head_field_selected(None, self._widgets[1][1], self._widgets[1][2])
 
-    def head_field_selected(self, event, row):
-        field_name = self._widgets[row][1].get()
+    def head_field_selected(self, event, name_combobox, value_combobox):
+        field_name = name_combobox.get()
         if field_name is None or len(field_name.strip()) == 0:
             return
-        combobox = self._widgets[row][2]
-        combobox.configure(values=header_field_map.get(field_name))
-        combobox.current(0)
+        value_combobox.configure(values=header_field_map.get(field_name))
+        value_combobox.current(0)
 
     def add_row(self):
         current_row = []
         #col 1
-        self._checkbox_value.append(tk.IntVar())
+        checkbox_variable = tk.IntVar()
+        self._checkbox_value.append(checkbox_variable)
         checkbox = tk.Checkbutton(self, onvalue=1, offvalue=0,
-            variable=self._checkbox_value[self.rows], command=lambda row=self.rows: self.update_row_widget_state(row))
+            variable=self._checkbox_value[self.rows])
         checkbox.grid(row=self.rows, column=0, sticky="nsew", padx=1, pady=1)
         current_row.append(checkbox)
         #col 2
-        combobox = ttk.Combobox(self, text="", values=['GET', 'POST', 'PUT', 'DELETE'], width=8)
-        combobox.grid(row=self.rows, column=1, sticky="nsew", padx=1, pady=0)
-        current_row.append(combobox)
+        name_combobox = ttk.Combobox(self, text="", values=header_field_map.keys(), width=8)
+        name_combobox.grid(row=self.rows, column=1, sticky="nsew", padx=1, pady=0)
+        current_row.append(name_combobox)
         #col 3
-        combobox = ttk.Combobox(self, text="", values=[], width=8)
-        combobox.grid(row=self.rows, column=2, sticky="nsew", padx=1, pady=0)
-        current_row.append(combobox)
+        value_combobox = ttk.Combobox(self, text="", values=[], width=8)
+        value_combobox.grid(row=self.rows, column=2, sticky="nsew", padx=1, pady=0)
+        current_row.append(value_combobox)
         self._widgets.append(current_row)
+        #事件绑定
+        checkbox.configure(command=lambda checkbox_variable=checkbox_variable, name_combobox=name_combobox,
+                            value_combobox=value_combobox:
+                            self.update_row_widget_state(checkbox_variable, name_combobox, value_combobox))
+        name_combobox.bind("<<ComboboxSelected>>", lambda event: self.head_field_selected(event, name_combobox, value_combobox))
         #记录总行列数
         self.rows += 1
         self.columns += 1
@@ -98,15 +89,13 @@ class HeaderTable(tk.LabelFrame):
                 if row == 0:
                     mark = True
 
-    def update_row_widget_state(self, row):
-        widget1 = self._widgets[row][1]
-        widget2 = self._widgets[row][2]
-        if self._checkbox_value[row].get() == 1:
-            widget1.configure(state='normal')
-            widget2.configure(state='normal')
+    def update_row_widget_state(self, checkbox_variable, name_combobox, value_combobox):
+        if checkbox_variable.get() == 1:
+            name_combobox.configure(state='normal')
+            value_combobox.configure(state='normal')
         else:
-            widget1.configure(state='disable')
-            widget2.configure(state='disable')
+            name_combobox.configure(state='disable')
+            value_combobox.configure(state='disable')
 
 
     def set(self, row, column, value):
@@ -116,6 +105,17 @@ class HeaderTable(tk.LabelFrame):
     def get(self, row, column):
         widget = self._widgets[row][column]
         return widget.get()
+
+    def get_header_params(self):
+        result = dict()
+        if self.rows == 1:
+            return result
+        for row in range(1, self.rows):
+            field_name = self._widgets[row][1].get()
+            if field_name is not None and len(field_name.strip()) > 0:
+                result[field_name] = self._widgets[row][2].get()
+        #print result
+        return result
 
 
 class App(tk.Frame):
@@ -189,16 +189,17 @@ class App(tk.Frame):
     def send_btn_click(self):
         url = self.url_entry.get()
         if url:
+            headers = self.header_table.get_header_params()
             r = None
             method = self.http_method.get()
             if method == 'GET':
-                r = requests.get(url, verify=False)
+                r = requests.get(url, headers=headers, verify=False)
             elif method == 'POST':
-                r = requests.post(url, verify=False)
+                r = requests.post(url, headers=headers,  verify=False)
             elif method == 'PUT':
-                r = requests.put(url, verify=False)
+                r = requests.put(url, headers=headers,  verify=False)
             else:
-                r = requests.delete(url, verify=False)
+                r = requests.delete(url, headers=headers,  verify=False)
             content = ""
             if r.status_code == 200:
                 self.console_text.delete(1.0, tk.END)
@@ -209,9 +210,6 @@ class App(tk.Frame):
             #上色
             self.console_text.tag_add("title", "1.0", "1.10")
             self.console_text.tag_config("title", foreground="blue")
-            #header
-            print self.header_table.get(1, 1)
-            self.header_table.set(1, 2, "POST")
 
     def send_btn_return(self, envent):
         self.send_btn_click()
