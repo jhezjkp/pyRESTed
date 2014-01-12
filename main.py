@@ -5,11 +5,15 @@ import Tkinter as tk
 import ttk
 import requests
 
+header_field_map = {"Accept": ["text/plain", "text/html"], 
+                    "User-Agent": ["Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36", 
+                                    "Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0"]}
+
 
 #头部数据表格
 class HeaderTable(tk.LabelFrame):
 
-    def __init__(self, parent, rows=3, columns=3):
+    def __init__(self, parent, rows=2, columns=3):
         tk.LabelFrame.__init__(self, parent, bg="gray")
         self.rows = rows
         self.columns = columns
@@ -31,7 +35,8 @@ class HeaderTable(tk.LabelFrame):
                         checkbox.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
                         current_row.append(checkbox)
                     elif column == 1:
-                        combobox = ttk.Combobox(self, text="", values=['GET', 'POST', 'PUT', 'DELETE'], width=8)
+                        combobox = ttk.Combobox(self, text="", values=header_field_map.keys(), width=8)
+                        combobox.bind("<<ComboboxSelected>>", lambda event, row=row: self.head_field_selected(event, row))
                         combobox.grid(row=row, column=column, sticky="nsew", padx=1, pady=0)
                         current_row.append(combobox)
                     else:
@@ -45,6 +50,17 @@ class HeaderTable(tk.LabelFrame):
                 self.grid_columnconfigure(column, weight=1)
             else:
                 self.grid_columnconfigure(column, weight=10)
+        #预先选定一个header头
+        self._widgets[1][1].current(1)
+        self.head_field_selected(None, 1)
+
+    def head_field_selected(self, event, row):
+        field_name = self._widgets[row][1].get()
+        if field_name is None or len(field_name.strip()) == 0:
+            return
+        combobox = self._widgets[row][2]
+        combobox.configure(values=header_field_map.get(field_name))
+        combobox.current(0)
 
     def add_row(self):
         current_row = []
