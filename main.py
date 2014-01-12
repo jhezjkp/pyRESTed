@@ -147,7 +147,8 @@ class App(tk.Frame):
         self.url_entry.pack(side=tk.LEFT)
         #method combox
         self.http_method = tk.StringVar(self.cf_top, 'GET')
-        self.method_cb = ttk.Combobox(self.cf_top, text=self.http_method, values=['GET', 'POST', 'PUT', 'DELETE'], width=8)
+        self.method_cb = ttk.Combobox(self.cf_top, text=self.http_method, state="readonly",
+                                values=['GET', 'POST', 'PUT', 'DELETE'], width=8)
         self.method_cb.pack(side=tk.LEFT)
         self.cf_top.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
         #header table
