@@ -8,8 +8,11 @@ import requests
 
 #头部数据表格
 class HeaderTable(tk.LabelFrame):
+
     def __init__(self, parent, rows=3, columns=3):
         tk.LabelFrame.__init__(self, parent, bg="gray")
+        self.rows = rows
+        self.columns = columns
         self._widgets = []
         self._checkbox_value = []
         for row in range(rows):
@@ -42,6 +45,27 @@ class HeaderTable(tk.LabelFrame):
                 self.grid_columnconfigure(column, weight=1)
             else:
                 self.grid_columnconfigure(column, weight=10)
+
+    def add_row(self):
+        current_row = []
+        #col 1
+        self._checkbox_value.append(tk.IntVar())
+        checkbox = tk.Checkbutton(self, onvalue=1, offvalue=0,
+            variable=self._checkbox_value[self.rows], command=lambda row=self.rows: self.update_row_widget_state(row))
+        checkbox.grid(row=self.rows, column=0, sticky="nsew", padx=1, pady=1)
+        current_row.append(checkbox)
+        #col 2
+        combobox = ttk.Combobox(self, text="", values=['GET', 'POST', 'PUT', 'DELETE'], width=8)
+        combobox.grid(row=self.rows, column=1, sticky="nsew", padx=1, pady=0)
+        current_row.append(combobox)
+        #col 3
+        combobox = ttk.Combobox(self, text="", values=[], width=8)
+        combobox.grid(row=self.rows, column=2, sticky="nsew", padx=1, pady=0)
+        current_row.append(combobox)
+        self._widgets.append(current_row)
+        #记录总行列数
+        self.rows += 1
+        self.columns += 1
 
     def update_row_widget_state(self, row):
         widget1 = self._widgets[row][1]
@@ -100,6 +124,13 @@ class App(tk.Frame):
         self.header_table = HeaderTable(self.cf_table)
         self.header_table.pack(fill=tk.BOTH)
         self.cf_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
+        #header button
+        self.cf_button = tk.Frame(self.control_frame)
+        self.header_add_btn = tk.Button(self.cf_button, text="+", command=lambda is_add=True: self.header_control_btn(is_add))
+        self.header_add_btn.pack(side=tk.RIGHT)
+        self.header_remove_btn = tk.Button(self.cf_button, text="-", command=lambda is_add=False: self.header_control_btn(is_add))
+        self.header_remove_btn.pack(side=tk.RIGHT)
+        self.cf_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
         self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
 
     def init_console_frame(self, parent):
@@ -117,6 +148,12 @@ class App(tk.Frame):
         self.send_btn.bind('<Return>', self.send_btn_return)
         self.send_btn.pack(side=tk.RIGHT)
         self.bottom_frame.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH, padx="2m", pady="2m", ipady="1m")
+
+    def header_control_btn(self, is_add):
+        if is_add:
+            self.header_table.add_row()
+        else:
+            pass
 
     def send_btn_click(self):
         url = self.url_entry.get()
