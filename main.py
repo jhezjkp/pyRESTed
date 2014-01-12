@@ -140,7 +140,7 @@ class App(tk.Frame):
 
     def init_constrol_frame(self, parent):
         self.control_frame = tk.Frame(parent)
-        self.cf_top = tk.Frame(self.control_frame)
+        self.cf_top = tk.Frame(self.control_frame, bg="#ededed")
         #url entry
         self.http_url = tk.StringVar(parent, "https://kyfw.12306.cn/otn/login/checkUser")
         self.url_entry = tk.Entry(self.cf_top, text=self.http_url, width=50)
@@ -152,7 +152,7 @@ class App(tk.Frame):
         self.method_cb.pack(side=tk.LEFT)
         self.cf_top.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
         #header table
-        self.cf_table = tk.Frame(self.control_frame)
+        self.cf_table = tk.Frame(self.control_frame, bg="#ededed")
         self.header_table = HeaderTable(self.cf_table)
         self.header_table.pack(fill=tk.BOTH)
         self.cf_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
@@ -166,7 +166,7 @@ class App(tk.Frame):
         self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
 
     def init_console_frame(self, parent):
-        self.console_frame = tk.Frame(parent)
+        self.console_frame = tk.Frame(parent, bg="white")
         self.console_text = tk.Text(self.console_frame)
         #禁止输入
         self.console_text.bind("<KeyPress>", lambda e: "break")
