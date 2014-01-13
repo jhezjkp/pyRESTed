@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 #encoding=utf-8
 
+import time
 import Tkinter as tk
 import ttk
+import tkFont
 import requests
 
 header_field_map = {"Accept": ["text/plain", "text/html"], 
@@ -150,28 +152,29 @@ class App(tk.Frame):
         self.method_cb = ttk.Combobox(self.cf_top, text=self.http_method, state="readonly",
                                 values=['GET', 'POST', 'PUT', 'DELETE'], width=8)
         self.method_cb.pack(side=tk.LEFT)
-        self.cf_top.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
+        self.cf_top.pack(side=tk.TOP, expand=tk.YES, fill=tk.X, pady="1m")
         #header table
         self.cf_table = tk.Frame(self.control_frame, bg="#ededed")
         self.header_table = HeaderTable(self.cf_table)
-        self.header_table.pack(fill=tk.BOTH)
-        self.cf_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
+        self.header_table.pack(fill=tk.X)
+        self.cf_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         #header button
         self.cf_button = tk.Frame(self.control_frame)
         self.header_add_btn = tk.Button(self.cf_button, text="+", command=lambda is_add=True: self.header_control_btn(is_add))
         self.header_add_btn.pack(side=tk.RIGHT)
         self.header_remove_btn = tk.Button(self.cf_button, text="-", command=lambda is_add=False: self.header_control_btn(is_add))
         self.header_remove_btn.pack(side=tk.RIGHT)
-        self.cf_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
-        self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
+        self.cf_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
+        #param table
+        self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.X)
 
     def init_console_frame(self, parent):
         self.console_frame = tk.Frame(parent, bg="white")
-        self.console_text = tk.Text(self.console_frame)
+        self.console_text = tk.Text(self.console_frame, state='disable', bd=0)
         #禁止输入
         self.console_text.bind("<KeyPress>", lambda e: "break")
         self.console_text.pack(padx="2m", pady="2m")
-        self.console_frame.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.BOTH)
+        self.console_frame.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X)
 
     def init_bottom_frame(self):
         self.bottom_frame = tk.Frame(self.master)
@@ -193,6 +196,7 @@ class App(tk.Frame):
             headers = self.header_table.get_header_params()
             r = None
             method = self.http_method.get()
+            start_time = time.time()
             if method == 'GET':
                 r = requests.get(url, headers=headers, verify=False)
             elif method == 'POST':
@@ -201,16 +205,24 @@ class App(tk.Frame):
                 r = requests.put(url, headers=headers,  verify=False)
             else:
                 r = requests.delete(url, headers=headers,  verify=False)
+            time_cost = time.time() - start_time
+            self.console_text.configure(state='normal')
             content = ""
+            http_method_len = len(self.http_method.get())
+            first_line_len = 0
             if r.status_code == 200:
                 self.console_text.delete(1.0, tk.END)
                 content = self.http_method.get() + " " + self.http_url.get() + "\n\n" + r.text
+                first_line_len = http_method_len + 1 + len(self.http_url.get())
             else:
                 content = self.http_method.get() + self.http_url.get() + "\n" + r.text
             self.console_text.insert(tk.END, content)
             #上色
-            self.console_text.tag_add("title", "1.0", "1.10")
-            self.console_text.tag_config("title", foreground="blue")
+            self.console_text.tag_add("http_method", "1.0", "1." + str(http_method_len))
+            self.console_text.tag_add("url", "1." + str(http_method_len), "1." + str(first_line_len))
+            self.console_text.tag_config("http_method", background="#53c0e0", foreground="white", font='Helvetica -16 bold')
+            self.console_text.tag_config("url", foreground="blue", font='Helvetica -16 bold')
+            self.console_text.configure(state='disable')
 
     def send_btn_return(self, envent):
         self.send_btn_click()
