@@ -126,12 +126,12 @@ class App(tk.Frame):
         tk.Frame.__init__(self, master)
         self.master.title("pyRESTed")
         #最大窗口大小
-        self.master.maxsize(1000, 450)
+        #self.master.maxsize(1000, 450)
         #窗口大小
         self.master.geometry('1000x450')
         #上面的面板
-        self.top_frame = tk.PanedWindow(self.master, orient=tk.HORIZONTAL)
-        self.top_frame.pack(side=tk.TOP)
+        self.top_frame = tk.PanedWindow(self.master, orient=tk.HORIZONTAL, bg="#ededed")
+        self.top_frame.pack(side=tk.TOP, fill=tk.BOTH)
         #左边控制区域
         self.init_constrol_frame(self.top_frame)
         #右边输出区域
@@ -159,14 +159,14 @@ class App(tk.Frame):
         self.header_table.pack(fill=tk.X)
         self.cf_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         #header button
-        self.cf_button = tk.Frame(self.control_frame)
+        self.cf_button = tk.Frame(self.control_frame, bg="#ededed")
         self.header_add_btn = tk.Button(self.cf_button, text="+", command=lambda is_add=True: self.header_control_btn(is_add))
         self.header_add_btn.pack(side=tk.RIGHT)
         self.header_remove_btn = tk.Button(self.cf_button, text="-", command=lambda is_add=False: self.header_control_btn(is_add))
         self.header_remove_btn.pack(side=tk.RIGHT)
         self.cf_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         #param table
-        self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.X)
+        self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.X, padx="2m")
 
     def init_console_frame(self, parent):
         self.console_frame = tk.Frame(parent, bg="white")
@@ -177,12 +177,12 @@ class App(tk.Frame):
         self.console_frame.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X)
 
     def init_bottom_frame(self):
-        self.bottom_frame = tk.Frame(self.master)
+        self.bottom_frame = tk.Frame(self.master, bg="#bbbbbb")
         self.send_btn = tk.Button(self.bottom_frame, text="发送", command=self.send_btn_click)
         #处理回车
         self.send_btn.bind('<Return>', self.send_btn_return)
         self.send_btn.pack(side=tk.RIGHT)
-        self.bottom_frame.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH, padx="2m", pady="2m", ipady="1m")
+        self.bottom_frame.pack(side=tk.TOP, expand=tk.YES, fill=tk.X, padx="2m", pady="2m", ipady="1m")
 
     def header_control_btn(self, is_add):
         if is_add:
