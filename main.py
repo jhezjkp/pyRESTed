@@ -66,7 +66,7 @@ class HeaderTable(tk.LabelFrame):
         current_row.append(value_combobox)
         self._widgets.append(current_row)
         #事件绑定
-        checkbox.configure(command=lambda checkbox_variable=checkbox_variable, name_combobox=name_combobox,
+        checkbox.configure(command=lambda checkbox_variable=self._checkbox_value[self.rows], name_combobox=name_combobox,
                             value_combobox=value_combobox:
                             self.update_row_widget_state(checkbox_variable, name_combobox, value_combobox))
         name_combobox.bind("<<ComboboxSelected>>", lambda event: self.head_field_selected(event, name_combobox, value_combobox))
@@ -89,7 +89,7 @@ class HeaderTable(tk.LabelFrame):
                 if row == 0:
                     mark = True
 
-    def update_row_widget_state(self, checkbox_variable, name_combobox, value_combobox):
+    def update_row_widget_state(self, checkbox_variable, name_combobox, value_combobox):        
         if checkbox_variable.get() == 1:
             name_combobox.configure(state='normal')
             value_combobox.configure(state='normal')
