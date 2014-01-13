@@ -120,6 +120,103 @@ class HeaderTable(tk.LabelFrame):
         return result
 
 
+#参数数据表格
+class ParamTable(tk.LabelFrame):
+
+    def __init__(self, parent, rows=2, columns=3):
+        tk.LabelFrame.__init__(self, parent, bg="gray")
+        self.rows = 0
+        self.columns = columns
+        self._widgets = []
+        self._checkbox_value = []
+        #表头
+        current_row = []
+        for column in range(columns):
+            self._checkbox_value.append(tk.IntVar())  # 占坑，无用
+            lable = tk.Label(self, text="" if column ==0 else "Parameter Name" if column == 1 else "Parameter Value")
+            lable.grid(row=0, column=column, sticky="nsew", padx=1, pady=1)
+            current_row.append(lable)
+        self._widgets.append(current_row)
+        self.rows += 1  # 表格头算一行
+        for row in range(1, rows):
+            self.add_row()
+        #设置各列的列宽
+        for column in range(columns):
+            if column == 0:
+                self.grid_columnconfigure(column, weight=1)
+            else:
+                self.grid_columnconfigure(column, weight=10)
+
+    def add_row(self):
+        current_row = []
+        #col 1
+        checkbox_variable = tk.IntVar()
+        self._checkbox_value.append(checkbox_variable)
+        checkbox = tk.Checkbutton(self, onvalue=1, offvalue=0,
+            variable=self._checkbox_value[self.rows])
+        checkbox.grid(row=self.rows, column=0, sticky="nsew", padx=1, pady=1)
+        current_row.append(checkbox)
+        #col 2
+        name_entry = tk.Entry(self, text="", width=8)
+        name_entry.grid(row=self.rows, column=1, sticky="nsew", padx=1, pady=0)
+        current_row.append(name_entry)
+        #col 3
+        value_entry = tk.Entry(self, text="", width=8)
+        value_entry.grid(row=self.rows, column=2, sticky="nsew", padx=1, pady=0)
+        current_row.append(value_entry)
+        self._widgets.append(current_row)
+        #事件绑定
+        checkbox.configure(command=lambda checkbox_variable=self._checkbox_value[self.rows], name_entry=name_entry,
+                            value_entry=value_entry:
+                            self.update_row_widget_state(checkbox_variable, name_entry, value_entry))
+        #记录总行列数
+        self.rows += 1
+        self.columns += 1
+
+    def remove_selected_rows(self):
+        mark = False
+        while not mark:
+            for row in reversed(range(self.rows)):
+                if self._checkbox_value[row].get() == 1:
+                    #self.grid_columnconfigure(column, weight=1)
+                    for obj in self._widgets[row]:
+                        obj.destroy()
+                    del self._widgets[row]
+                    del self._checkbox_value[row]
+                    self.rows -= 1
+                    break
+                if row == 0:
+                    mark = True
+
+    def update_row_widget_state(self, checkbox_variable, name_entry, value_entry):        
+        if checkbox_variable.get() == 1:
+            name_entry.configure(state='normal')
+            value_entry.configure(state='normal')
+        else:
+            name_entry.configure(state='disable')
+            value_entry.configure(state='disable')
+
+
+    def set(self, row, column, value):
+        widget = self._widgets[row][column]
+        widget.configure(text=value)
+
+    def get(self, row, column):
+        widget = self._widgets[row][column]
+        return widget.get()
+
+    def get_params(self):
+        result = dict()
+        if self.rows == 1:
+            return result
+        for row in range(1, self.rows):
+            field_name = self._widgets[row][1].get()
+            if field_name is not None and len(field_name.strip()) > 0:
+                result[field_name] = self._widgets[row][2].get()
+        #print result
+        return result
+
+
 class App(tk.Frame):
 
     def __init__(self, master=None):
@@ -154,18 +251,30 @@ class App(tk.Frame):
         self.method_cb.pack(side=tk.LEFT)
         self.cf_top.pack(side=tk.TOP, expand=tk.YES, fill=tk.X, pady="1m")
         #header table
-        self.cf_table = tk.Frame(self.control_frame, bg="#ededed")
-        self.header_table = HeaderTable(self.cf_table)
+        self.cf_header_table = tk.Frame(self.control_frame, bg="#ededed")
+        self.header_table = HeaderTable(self.cf_header_table)
         self.header_table.pack(fill=tk.X)
-        self.cf_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
+        self.cf_header_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         #header button
-        self.cf_button = tk.Frame(self.control_frame, bg="#ededed")
-        self.header_add_btn = tk.Button(self.cf_button, text="+", command=lambda is_add=True: self.header_control_btn(is_add))
+        self.cf_header_button = tk.Frame(self.control_frame, bg="#ededed")
+        self.header_add_btn = tk.Button(self.cf_header_button, text="+", command=lambda is_add=True: self.header_control_btn(is_add))
         self.header_add_btn.pack(side=tk.RIGHT)
-        self.header_remove_btn = tk.Button(self.cf_button, text="-", command=lambda is_add=False: self.header_control_btn(is_add))
+        self.header_remove_btn = tk.Button(self.cf_header_button, text="-", command=lambda is_add=False: self.header_control_btn(is_add))
         self.header_remove_btn.pack(side=tk.RIGHT)
-        self.cf_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
+        self.cf_header_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         #param table
+        self.cf_param_table = tk.Frame(self.control_frame, bg="#ededed")
+        self.param_table = ParamTable(self.cf_param_table)
+        self.param_table.pack(fill=tk.X)
+        self.cf_param_table.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
+        #param button
+        self.cf_param_button = tk.Frame(self.control_frame, bg="#ededed")
+        self.param_add_btn = tk.Button(self.cf_param_button, text="+", command=lambda is_add=True: self.param_control_btn(is_add))
+        self.param_add_btn.pack(side=tk.RIGHT)
+        self.param_remove_btn = tk.Button(self.cf_param_button, text="-", command=lambda is_add=False: self.param_control_btn(is_add))
+        self.param_remove_btn.pack(side=tk.RIGHT)
+        self.cf_param_button.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
+        #pack control frame
         self.control_frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.X, padx="2m")
 
     def init_console_frame(self, parent):
@@ -190,17 +299,24 @@ class App(tk.Frame):
         else:
             self.header_table.remove_selected_rows()
 
+    def param_control_btn(self, is_add):
+        if is_add:
+            self.param_table.add_row()
+        else:
+            self.param_table.remove_selected_rows()
+
     def send_btn_click(self):
         url = self.url_entry.get()
         if url:
             headers = self.header_table.get_header_params()
+            params = self.param_table.get_params()
             r = None
             method = self.http_method.get()
             start_time = time.time()
             if method == 'GET':
-                r = requests.get(url, headers=headers, verify=False)
+                r = requests.get(url, headers=headers, params=params, verify=False)
             elif method == 'POST':
-                r = requests.post(url, headers=headers,  verify=False)
+                r = requests.post(url, headers=headers, data=params, verify=False)
             elif method == 'PUT':
                 r = requests.put(url, headers=headers,  verify=False)
             else:
@@ -246,6 +362,10 @@ class App(tk.Frame):
                 left = self.console_text.index(tk.INSERT)
                 for key, value in headers.items():
                     self.console_text.insert(tk.END, key + ": " + value + "\n")
+                self.console_text.insert(tk.END, "{\n")
+                for key, value in params.items():
+                    self.console_text.insert(tk.END, "   " + key + ": " + value + "\n")
+                self.console_text.insert(tk.END, "}\n")
                 right = self.console_text.index(tk.INSERT)
                 self.console_text.tag_add("mark_" + str(left), left, right)
                 self.console_text.tag_config("mark_" + str(left), foreground="black", font='Helvetica -12 bold')
@@ -281,7 +401,7 @@ class App(tk.Frame):
                 content = self.http_method.get() + self.http_url.get() + "\n" + r.text
             self.console_text.configure(state='disable')
 
-    def send_btn_return(self, envent):
+    def send_btn_return(self, event):
         self.send_btn_click()
 
 if __name__ == '__main__':
