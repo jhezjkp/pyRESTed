@@ -170,7 +170,7 @@ class App(tk.Frame):
 
     def init_console_frame(self, parent):
         self.console_frame = tk.Frame(parent, bg="white")
-        self.console_text = tk.Text(self.console_frame, state='disable', bd=0)
+        self.console_text = tk.Text(self.console_frame, state='disable', bd=0, spacing3=1)
         #禁止输入
         self.console_text.bind("<KeyPress>", lambda e: "break")
         self.console_text.pack(padx="2m", pady="2m")
@@ -207,21 +207,78 @@ class App(tk.Frame):
                 r = requests.delete(url, headers=headers,  verify=False)
             time_cost = time.time() - start_time
             self.console_text.configure(state='normal')
-            content = ""
-            http_method_len = len(self.http_method.get())
-            first_line_len = 0
+            #删除原有内容
+            self.console_text.delete(1.0, tk.END)
             if r.status_code == 200:
-                self.console_text.delete(1.0, tk.END)
-                content = self.http_method.get() + " " + self.http_url.get() + "\n\n" + r.text
-                first_line_len = http_method_len + 1 + len(self.http_url.get())
+                #输出http方法
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, self.http_method.get())
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), background="#53c0e0", foreground="white", font='Helvetica -16 bold')
+                self.console_text.insert(tk.END, " ")
+                #输出url
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, url)
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="blue", font='Helvetica -16 bold')
+                self.console_text.insert(tk.END, "\n")
+                #输出耗时
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, "Response time: ")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), font='Helvetica -12 bold')
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, str(time_cost) + "ms")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="gray", font='Helvetica -12 normal')
+                self.console_text.insert(tk.END, "\n\n")
+                #输出请求头
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, "Request Headers & Body")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="#549ddb", font='Helvetica -14 bold')
+                self.console_text.insert(tk.END, "\n")
+                left = self.console_text.index(tk.INSERT)
+                for key, value in headers.items():
+                    self.console_text.insert(tk.END, key + ": " + value + "\n")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="black", font='Helvetica -12 bold')
+                self.console_text.insert(tk.END, "\n")
+                #输出响应头
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, "Response Headers")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="#549ddb", font='Helvetica -14 bold')
+                self.console_text.insert(tk.END, "\n")
+                left = self.console_text.index(tk.INSERT)
+                for key, value in r.headers.items():
+                    self.console_text.insert(tk.END, key + ": " + value + "\n")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="black", font='Helvetica -12 bold')
+                self.console_text.insert(tk.END, "\n\n")
+                #输出响应内容
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, "Response Body")
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="#549ddb", font='Helvetica -14 bold')
+                self.console_text.insert(tk.END, "\n")
+                left = self.console_text.index(tk.INSERT)
+                self.console_text.insert(tk.END, r.text)
+                right = self.console_text.index(tk.INSERT)
+                self.console_text.tag_add("mark_" + str(left), left, right)
+                self.console_text.tag_config("mark_" + str(left), foreground="black", font='Helvetica -12 bold')
+                self.console_text.insert(tk.END, "\n\n")
             else:
                 content = self.http_method.get() + self.http_url.get() + "\n" + r.text
-            self.console_text.insert(tk.END, content)
-            #上色
-            self.console_text.tag_add("http_method", "1.0", "1." + str(http_method_len))
-            self.console_text.tag_add("url", "1." + str(http_method_len), "1." + str(first_line_len))
-            self.console_text.tag_config("http_method", background="#53c0e0", foreground="white", font='Helvetica -16 bold')
-            self.console_text.tag_config("url", foreground="blue", font='Helvetica -16 bold')
             self.console_text.configure(state='disable')
 
     def send_btn_return(self, envent):
